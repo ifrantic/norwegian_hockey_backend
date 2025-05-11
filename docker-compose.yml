@@ -1,0 +1,40 @@
+# Docker Compose file for setting up a PostgreSQL database for a hockey application
+services:
+#   web:
+#     build: 
+#       context: ..
+#       dockerfile: docker/Dockerfile
+#     volumes:
+#       - ..:/app
+#     ports:
+#       - "8000:8000"
+#     environment:
+#       - DATABASE_URL=postgres://user:password@db:5432/mydatabase
+#     depends_on:
+#       - db
+
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: hockey_db
+    env_file:
+      - .env
+    networks:
+      - backend
+    volumes:
+      - hockey_data:/var/lib/postgresql/data
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+volumes:
+  hockey_data:
+    name: hockey_data
+
+networks:
+  backend:
+    name: hockey_backend
