@@ -1,21 +1,52 @@
 import httpx
 from datetime import datetime
 from sqlalchemy.orm import Session
+import asyncio
 from src.config.settings import Settings
 from src.models.tournament import Tournament, TournamentClass
+from src.utils.logging_config import setup_logging
+from datetime import datetime
+
+# Set up logging
+logger = setup_logging("tournament_service")
+logger.setLevel("INFO")
 
 class TournamentService:
     def __init__(self):
         self.settings = Settings()
         self.base_url = self.settings.API_BASE_URL
 
-    async def fetch_season_tournaments(self, season_id: int) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/ta/Tournament/Season/{season_id}"
-            )
-            response.raise_for_status()
-            return response.json()
+    async def fetch_season_tournaments(self, season_id: int, max_retries: int = 3) -> dict:
+        if not isinstance(season_id, int) or season_id <= 0:
+            raise ValueError(f"Invalid season_id: {season_id}")
+        retries = 0
+        logger.info(f"Fetching tournaments for season {season_id}")
+        while retries < max_retries:
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    response = await client.get(
+                        f"{self.base_url}/ta/Tournament/Season/{season_id}"
+                    )
+                    response.raise_for_status()
+                    return response.json()
+            
+            except (httpx.HTTPError, httpx.TimeoutException) as e:
+                retries += 1
+                logger.warning("API request failed, retrying", extra={
+                    "season_id": season_id,
+                    "retry_count": retries,
+                    "max_retries": max_retries,
+                    "error": str(e),
+                    "wait_seconds": 2 ** retries
+                })
+                if retries == max_retries:
+                    logger.error("Failed to fetch data after maximum retries", extra={
+                        "season_id": season_id,
+                        "retry_count": retries,
+                        "error": str(e)
+                    })
+                    raise Exception(f"Failed to fetch data after {max_retries} attempts: {str(e)}")
+                await asyncio.sleep(2 ** retries)  # Exponential backoff
 
     def _parse_date(self, date_str: str | None) -> datetime | None:
         if not date_str:
@@ -74,3 +105,4 @@ class TournamentService:
             db.merge(tournament)
         
         db.commit()
+        logger.info(f"Saved {len(data.get('tournamentsInSeason', []))} tournaments")

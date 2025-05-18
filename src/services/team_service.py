@@ -1,6 +1,7 @@
 import httpx
 from datetime import datetime
 from sqlalchemy.orm import Session
+import asyncio
 from src.config.settings import Settings
 from src.models.team import Team
 
@@ -9,13 +10,23 @@ class TeamService:
         self.settings = Settings()
         self.base_url = self.settings.API_BASE_URL
 
-    async def fetch_tournament_teams(self, tournament_id: int) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/ta/TournamentTeams/?tournamentId={tournament_id}"
-            )
-            response.raise_for_status()
-            return response.json()
+    async def fetch_tournament_teams(self, tournament_id: int,  max_retries: int = 3) -> dict:
+        if not isinstance(tournament_id, int) or tournament_id <= 0:
+            raise ValueError(f"Invalid tournament_id: {tournament_id}")
+        retries = 0
+        while retries < max_retries:
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        f"{self.base_url}/ta/TournamentTeams/?tournamentId={tournament_id}"
+                    )
+                    response.raise_for_status()
+                    return response.json()
+            except (httpx.HTTPError, httpx.TimeoutException) as e:
+                retries += 1
+                if retries == max_retries:
+                    raise Exception(f"Failed to fetch data after {max_retries} attempts: {str(e)}")
+                await asyncio.sleep(2 ** retries)  # Exponential backoff
 
     def save_tournament_teams(self, db: Session, data: dict):
         tournament_id = data["tournamentId"]
