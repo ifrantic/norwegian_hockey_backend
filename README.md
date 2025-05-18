@@ -50,8 +50,8 @@ pytest tests/
 ```
 
 ## update database with test scripts
-python -m src.scripts.fetch_tournaments
-python -m src.scripts.fetch_teams
+- python -m src.scripts.fetch_tournaments
+- python -m src.scripts.fetch_teams
 
 
 ## License
