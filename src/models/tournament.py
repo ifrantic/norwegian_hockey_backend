@@ -39,6 +39,7 @@ class Tournament(Base):
     sport_id = Column(Integer, nullable=True)
 
     tournament_classes = relationship("TournamentClass", back_populates="tournament")
+    matches = relationship("Match", back_populates="tournament")
 
 class TournamentClass(Base):
     __tablename__ = "tournament_classes"

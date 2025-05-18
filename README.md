@@ -52,6 +52,7 @@ pytest tests/
 ## update database with test scripts
 - python -m src.scripts.fetch_tournaments
 - python -m src.scripts.fetch_teams
+- python -m src.scripts.fetch_matches
 
 
 ## License
@@ -62,7 +63,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - next endpoints to get data from:
 - tournamentsInSeason [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/Tournament/Season/201036)
 - TournamentTeams [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentTeams/?tournamentId={{tournamentId}})
-- TournamentMatches [next](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentMatches/?tournamentId={{tournamentId}})
+- TournamentMatches [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentMatches/?tournamentId={{tournamentId}})
 - TournamentStandings [next](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentStandings/?tournamentId={{tournamentId}})
 - TeamMembers [next](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TeamMembers/{{teamId}})
 - Organisation [next](https://sf34-terminlister-prod-app.azurewebsites.net/org/Organisation?orgIds={{orgId}})

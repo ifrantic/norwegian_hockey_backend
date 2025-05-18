@@ -69,6 +69,68 @@ CREATE TABLE IF NOT EXISTS teams (
 CREATE INDEX idx_teams_tournament_id ON teams(tournament_id);
 CREATE INDEX idx_teams_team_id ON teams(team_id);
 
+-- Create matches table
+CREATE TABLE IF NOT EXISTS matches (
+    match_id INTEGER PRIMARY KEY,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(tournament_id),
+    match_no VARCHAR(50),
+    activity_area_id INTEGER,
+    activity_area_latitude FLOAT,
+    activity_area_longitude FLOAT,
+    activity_area_name VARCHAR(255),
+    activity_area_no VARCHAR(50),
+    adm_org_id INTEGER,
+    arr_org_id INTEGER,
+    arr_org_no VARCHAR(50),
+    arr_org_name VARCHAR(255),
+    awayteam_id INTEGER,
+    awayteam_org_no VARCHAR(50),
+    awayteam VARCHAR(255),
+    awayteam_org_name VARCHAR(255),
+    awayteam_overridden_name VARCHAR(255),
+    awayteam_club_org_id INTEGER,
+    hometeam_id INTEGER,
+    hometeam VARCHAR(255),
+    hometeam_org_name VARCHAR(255),
+    hometeam_overridden_name VARCHAR(255),
+    hometeam_org_no VARCHAR(50),
+    hometeam_club_org_id INTEGER,
+    round_id INTEGER,
+    round_name VARCHAR(100),
+    season_id INTEGER,
+    tournament_name VARCHAR(255),
+    match_date TIMESTAMP,
+    match_start_time INTEGER,
+    match_end_time INTEGER,
+    venue_unit_id INTEGER,
+    venue_unit_no VARCHAR(50),
+    venue_id INTEGER,
+    venue_no VARCHAR(50),
+    physical_area_id INTEGER,
+    home_goals INTEGER,
+    away_goals INTEGER,
+    match_end_result VARCHAR(50),
+    live_arena BOOLEAN,
+    live_client_type VARCHAR(100),
+    status_type_id INTEGER,
+    status_type VARCHAR(100),
+    last_change_date TIMESTAMP,
+    spectators INTEGER,
+    actual_match_date TIMESTAMP,
+    actual_match_start_time INTEGER,
+    actual_match_end_time INTEGER,
+    sport_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add indexes for match queries
+CREATE INDEX idx_matches_tournament_id ON matches(tournament_id);
+CREATE INDEX idx_matches_match_date ON matches(match_date);
+CREATE INDEX idx_matches_hometeam_id ON matches(hometeam_id);
+CREATE INDEX idx_matches_awayteam_id ON matches(awayteam_id);
+
+---------------------------------------
 --------------------------------------
 -- Create a read-only schema for views
 -- only after the tables are created
