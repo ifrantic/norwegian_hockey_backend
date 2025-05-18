@@ -17,7 +17,7 @@ class Team(Base):
     overridden_name = Column(String, nullable=True)
     describing_name = Column(String, nullable=True)
 
-    tournament = relationship("Tournament", backref="teams")
+    tournament = relationship("Tournament", back_populates="teams")
 
     # Define composite primary key and unique constraint
     __table_args__ = (

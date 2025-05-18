@@ -5,6 +5,9 @@ from src.models.base import Base
 # import all models to ensure they are registered with SQLAlchemy
 from src.models.tournament import Tournament, TournamentClass
 from src.models.team import Team
+from src.models.match import Match
+from src.models.standing import Standing
+
 
 settings = get_settings()
 engine = create_engine(settings.DATABASE_URL)

@@ -124,6 +124,106 @@ CREATE TABLE IF NOT EXISTS matches (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- Create standings table
+-- Create standings table with all the detailed fields
+CREATE TABLE IF NOT EXISTS standings (
+    id SERIAL PRIMARY KEY,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(tournament_id),
+    team_id INTEGER NOT NULL,
+    team_name VARCHAR(255),
+    overridden_name VARCHAR(255),
+    position INTEGER,
+    entry_id INTEGER,
+    
+    -- Match stats
+    matches_played INTEGER,
+    matches_home INTEGER,
+    matches_away INTEGER,
+    
+    -- Points
+    points INTEGER,
+    points_home INTEGER,
+    points_away INTEGER,
+    points_start INTEGER,
+    total_points INTEGER,
+    
+    -- Victories
+    victories INTEGER,
+    victories_home INTEGER,
+    victories_away INTEGER,
+    victories_fulltime_total INTEGER,
+    victories_fulltime_home INTEGER,
+    victories_fulltime_away INTEGER,
+    victories_overtime_total INTEGER,
+    victories_overtime_home INTEGER,
+    victories_overtime_away INTEGER,
+    victories_penalties_total INTEGER,
+    victories_penalties_home INTEGER,
+    victories_penalties_away INTEGER,
+    
+    -- Draws
+    draws INTEGER,
+    draws_home INTEGER,
+    draws_away INTEGER,
+    
+    -- Losses
+    losses INTEGER,
+    losses_home INTEGER,
+    losses_away INTEGER,
+    losses_fulltime_total INTEGER,
+    losses_fulltime_home INTEGER,
+    losses_fulltime_away INTEGER,
+    losses_overtime_total INTEGER,
+    losses_overtime_home INTEGER,
+    losses_overtime_away INTEGER,
+    losses_penalties_total INTEGER,
+    losses_penalties_home INTEGER,
+    losses_penalties_away INTEGER,
+    
+    -- Goals
+    goals_scored INTEGER,
+    goals_scored_home INTEGER,
+    goals_scored_away INTEGER,
+    goals_conceded INTEGER,
+    goals_conceded_home INTEGER,
+    goals_conceded_away INTEGER,
+    goals_diff INTEGER,
+    goals_ratio FLOAT,
+    
+    -- Penalty minutes
+    penalty_minutes INTEGER,
+    
+    -- Record strings
+    home_record VARCHAR(50),
+    away_record VARCHAR(50),
+    
+    -- Formatted strings
+    goals_home_formatted VARCHAR(50),
+    goals_away_formatted VARCHAR(50),
+    total_goals_formatted VARCHAR(50),
+    
+    -- Additional fields
+    team_penalty VARCHAR(255),
+    team_penalty_negative INTEGER,
+    team_penalty_positive INTEGER,
+    dispensation BOOLEAN,
+    team_entry_status VARCHAR(50),
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraint to ensure a team only appears once per tournament
+    UNIQUE(tournament_id, team_id)
+);
+
+-- Add indexes for standings queries
+CREATE INDEX idx_standings_tournament_id ON standings(tournament_id);
+CREATE INDEX idx_standings_team_id ON standings(team_id);
+CREATE INDEX idx_standings_position ON standings(position);
+
+
 -- Add indexes for match queries
 CREATE INDEX idx_matches_tournament_id ON matches(tournament_id);
 CREATE INDEX idx_matches_match_date ON matches(match_date);

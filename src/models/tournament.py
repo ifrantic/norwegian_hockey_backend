@@ -40,6 +40,8 @@ class Tournament(Base):
 
     tournament_classes = relationship("TournamentClass", back_populates="tournament")
     matches = relationship("Match", back_populates="tournament")
+    teams = relationship("Team", back_populates="tournament")
+    standings = relationship("Standing", back_populates="tournament")
 
 class TournamentClass(Base):
     __tablename__ = "tournament_classes"
