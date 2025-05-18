@@ -262,6 +262,35 @@ CREATE INDEX idx_organisations_name ON organisations(org_name);
 CREATE INDEX idx_organisations_city ON organisations(city);
 
 
+-- Create team_members table
+CREATE TABLE IF NOT EXISTS team_members (
+    id SERIAL PRIMARY KEY,
+    person_id INTEGER NOT NULL,
+    team_id INTEGER NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    nationality VARCHAR(50),
+    birth_date DATE,
+    gender VARCHAR(20),
+    height FLOAT,
+    number VARCHAR(10),
+    position VARCHAR(50),
+    owning_org_id INTEGER,
+    member_type VARCHAR(50),
+    image_url TEXT,
+    image2_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(person_id, team_id)
+);
+
+-- Add indexes for team_members queries
+CREATE INDEX idx_team_members_team_id ON team_members(team_id);
+CREATE INDEX idx_team_members_person_id ON team_members(person_id);
+CREATE INDEX idx_team_members_position ON team_members(position);
+CREATE INDEX idx_team_members_member_type ON team_members(member_type);
+
+
 ---------------------------------------
 --------------------------------------
 -- Create a read-only schema for views

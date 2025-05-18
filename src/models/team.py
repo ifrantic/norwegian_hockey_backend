@@ -19,6 +19,7 @@ class Team(Base):
 
     tournament = relationship("Tournament", back_populates="teams")
     organisation = relationship("Organisation", back_populates="teams")
+    members = relationship("TeamMember", back_populates="team")
 
     # Define composite primary key and unique constraint
     __table_args__ = (

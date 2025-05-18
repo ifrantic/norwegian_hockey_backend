@@ -8,6 +8,7 @@ from src.models.team import Team
 from src.models.match import Match
 from src.models.standing import Standing
 from src.models.organisation import Organisation
+from src.models.team_member import TeamMember
 
 
 settings = get_settings()
