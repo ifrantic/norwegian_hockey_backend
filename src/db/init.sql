@@ -230,6 +230,38 @@ CREATE INDEX idx_matches_match_date ON matches(match_date);
 CREATE INDEX idx_matches_hometeam_id ON matches(hometeam_id);
 CREATE INDEX idx_matches_awayteam_id ON matches(awayteam_id);
 
+
+-- Create organisations table
+CREATE TABLE IF NOT EXISTS organisations (
+    org_id INTEGER PRIMARY KEY,
+    reference_id VARCHAR(255),
+    org_name VARCHAR(255),
+    abbreviation VARCHAR(255),
+    describing_name VARCHAR(255),
+    org_type_id INTEGER,
+    organisation_number VARCHAR(50),
+    email VARCHAR(255),
+    home_page VARCHAR(255),
+    mobile_phone VARCHAR(50),
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    city VARCHAR(100),
+    country VARCHAR(100),
+    country_id VARCHAR(50),
+    post_code VARCHAR(20),
+    longitude FLOAT,
+    latitude FLOAT,
+    org_logo_base64 TEXT,
+    members INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add indexes for organisation queries
+CREATE INDEX idx_organisations_name ON organisations(org_name);
+CREATE INDEX idx_organisations_city ON organisations(city);
+
+
 ---------------------------------------
 --------------------------------------
 -- Create a read-only schema for views

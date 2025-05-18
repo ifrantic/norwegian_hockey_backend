@@ -64,6 +64,6 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - tournamentsInSeason [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/Tournament/Season/201036)
 - TournamentTeams [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentTeams/?tournamentId={{tournamentId}})
 - TournamentMatches [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentMatches/?tournamentId={{tournamentId}})
-- TournamentStandings [next](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentStandings/?tournamentId={{tournamentId}})
+- TournamentStandings [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentStandings/?tournamentId={{tournamentId}})
 - TeamMembers [next](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TeamMembers/{{teamId}})
-- Organisation [next](https://sf34-terminlister-prod-app.azurewebsites.net/org/Organisation?orgIds={{orgId}})
+- Organisation [ok](https://sf34-terminlister-prod-app.azurewebsites.net/org/Organisation?orgIds={{orgId}})

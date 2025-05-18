@@ -11,13 +11,14 @@ class Team(Base):
     tournament_id = Column(Integer, ForeignKey("tournaments.tournament_id"), nullable=False)
     
     # Nullable fields
-    club_org_id = Column(Integer, nullable=True)
+    club_org_id = Column(Integer, ForeignKey("organisations.org_id"), nullable=True)
     team_no = Column(Integer, nullable=True)
     team_name = Column(String, nullable=True)
     overridden_name = Column(String, nullable=True)
     describing_name = Column(String, nullable=True)
 
     tournament = relationship("Tournament", back_populates="teams")
+    organisation = relationship("Organisation", back_populates="teams")
 
     # Define composite primary key and unique constraint
     __table_args__ = (
