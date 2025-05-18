@@ -65,5 +65,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - TournamentTeams [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentTeams/?tournamentId={{tournamentId}})
 - TournamentMatches [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentMatches/?tournamentId={{tournamentId}})
 - TournamentStandings [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentStandings/?tournamentId={{tournamentId}})
-- TeamMembers [next](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TeamMembers/{{teamId}})
+- TeamMembers [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TeamMembers/{{teamId}})
 - Organisation [ok](https://sf34-terminlister-prod-app.azurewebsites.net/org/Organisation?orgIds={{orgId}})
+
+- create db views and api routes
