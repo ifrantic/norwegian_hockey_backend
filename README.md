@@ -51,5 +51,7 @@ pytest tests/
 
 ## update database with test scripts
 python -m src.scripts.fetch_tournaments
+
+
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.

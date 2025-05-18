@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from src.models.base import Base
 
-Base = declarative_base()
 
 class Tournament(Base):
     __tablename__ = "tournaments"

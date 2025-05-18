@@ -51,3 +51,20 @@ CREATE TABLE IF NOT EXISTS tournament_classes (
 -- Add indexes
 CREATE INDEX idx_tournaments_season_id ON tournaments(season_id);
 CREATE INDEX idx_tournament_classes_tournament_id ON tournament_classes(tournament_id);
+
+-- create table for tournament teams with composite primary key
+CREATE TABLE IF NOT EXISTS teams (
+    team_id INTEGER NOT NULL,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(tournament_id),
+    club_org_id INTEGER,
+    team_no INTEGER,
+    team_name VARCHAR(100),
+    overridden_name VARCHAR(100),
+    describing_name VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (team_id, tournament_id)
+);
+
+CREATE INDEX idx_teams_tournament_id ON teams(tournament_id);
+CREATE INDEX idx_teams_team_id ON teams(team_id);
