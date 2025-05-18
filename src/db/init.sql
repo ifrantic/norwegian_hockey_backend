@@ -69,16 +69,10 @@ CREATE TABLE IF NOT EXISTS teams (
 CREATE INDEX idx_teams_tournament_id ON teams(tournament_id);
 CREATE INDEX idx_teams_team_id ON teams(team_id);
 
-
-----------------------
+--------------------------------------
 -- Create a read-only schema for views
+-- only after the tables are created
 CREATE SCHEMA IF NOT EXISTS readonly;
-
--- Grant usage on the schema but not create permissions
-GRANT USAGE ON SCHEMA readonly TO PUBLIC;
-REVOKE CREATE ON SCHEMA readonly FROM PUBLIC;
-GRANT SELECT ON readonly.team_tournament_classes TO PUBLIC;
-REVOKE INSERT, UPDATE, DELETE ON readonly.team_tournament_classes FROM PUBLIC;
 
 
 -- Create the team_tournament_classes view in the readonly schema
@@ -119,3 +113,11 @@ CREATE INDEX IF NOT EXISTS idx_teams_describing_name ON teams(describing_name);
 CREATE INDEX IF NOT EXISTS idx_tournament_classes_gender ON tournament_classes(gender);
 CREATE INDEX IF NOT EXISTS idx_tournament_classes_from_age ON tournament_classes(from_age);
 CREATE INDEX IF NOT EXISTS idx_tournament_classes_to_age ON tournament_classes(to_age);
+
+
+-- Grant usage on the schema but not create permissions
+-- Do this after the tables are created, and after the view is created
+GRANT USAGE ON SCHEMA readonly TO PUBLIC;
+REVOKE CREATE ON SCHEMA readonly FROM PUBLIC;
+GRANT SELECT ON readonly.team_tournament_classes TO PUBLIC;
+REVOKE INSERT, UPDATE, DELETE ON readonly.team_tournament_classes FROM PUBLIC;
