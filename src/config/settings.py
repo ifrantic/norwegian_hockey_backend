@@ -10,6 +10,14 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_HOST: str = "localhost"
 
+    # MinIO settings
+    MINIO_ENDPOINT: str = "http://localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET: str = "hockey-images"
+    MINIO_REGION: str = "us-east-1"
+    MINIO_SECURE: bool = False  # Set to True for HTTPS
+
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"

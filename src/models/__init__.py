@@ -5,5 +5,6 @@ from src.models.match import Match
 from src.models.standing import Standing
 from src.models.organisation import Organisation
 from src.models.team_member import TeamMember
+from src.models.team_member_custom_data import TeamMemberCustomData
 
 # This ensures all models are loaded when models package is imported

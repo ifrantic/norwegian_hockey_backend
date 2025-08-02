@@ -344,3 +344,21 @@ GRANT USAGE ON SCHEMA readonly TO PUBLIC;
 REVOKE CREATE ON SCHEMA readonly FROM PUBLIC;
 GRANT SELECT ON readonly.team_tournament_classes TO PUBLIC;
 REVOKE INSERT, UPDATE, DELETE ON readonly.team_tournament_classes FROM PUBLIC;
+
+
+-- Create team_member_custom_data table, for custom data related to team members
+CREATE TABLE IF NOT EXISTS team_member_custom_data (
+    person_id INTEGER PRIMARY KEY,
+    image_object_key VARCHAR(255),      -- MinIO object key
+    image2_object_key VARCHAR(255),     -- Secondary image object key
+    original_image_url TEXT,
+    original_image2_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_fetched_at TIMESTAMP,
+    notes TEXT
+);
+
+-- Add index for team_member_custom_data queries
+CREATE INDEX idx_team_member_custom_data_person_id ON team_member_custom_data(person_id);
+CREATE INDEX idx_team_member_custom_data_last_fetched ON team_member_custom_data(last_fetched_at);

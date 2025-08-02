@@ -8,6 +8,8 @@ from src.config.settings import Settings
 from src.models.team_member import TeamMember
 from src.utils.logging_config import setup_logging
 from datetime import datetime, date
+from src.services.team_member_image_service import PersonImageService
+
 
 # Set up logging
 logger = setup_logging("team_member_service")
@@ -16,6 +18,8 @@ class TeamMemberService:
     def __init__(self):
         self.settings = Settings()
         self.base_url = self.settings.API_BASE_URL
+        self.person_image_service = PersonImageService() # for getting the images, due to jwt in urls
+
     
     async def fetch_team_members(self, team_id: int, max_retries: int = 3) -> Dict[str, Any]:
         """Fetch members (players, coaches) for a specific team"""
@@ -87,6 +91,8 @@ class TeamMemberService:
         db.commit()
         
         members_to_add = []
+        image_tasks = [] # store image download tasks
+
         for member_data in data.get("members", []):
             person_id = member_data.get("personId")
             if not person_id:
@@ -109,12 +115,20 @@ class TeamMemberService:
                 position=member_data.get("position"),
                 owning_org_id=member_data.get("owningOrgId"),
                 member_type=member_data.get("memberType"),
+                # dont need these, since they wont work due to jwt
                 image_url=member_data.get("imageUrl"),
                 image2_url=member_data.get("image2Url"),
                 created_at=datetime.now(),
                 updated_at=datetime.now()
             )
             members_to_add.append(member)
+
+            # Collect image URLs for later processing
+            image_url = member_data.get("imageUrl")
+            image2_url = member_data.get("image2Url")
+            if image_url or image2_url:
+                image_tasks.append((person_id, image_url, image2_url))
+        
         
         # Add all new members to the database
         if members_to_add:
@@ -135,3 +149,24 @@ class TeamMemberService:
                 raise
         else:
             logger.info("No team members to save", extra={"team_id": team_id})
+
+
+        # Process images asynchronously after saving team members
+        if image_tasks:
+            asyncio.create_task(self._process_member_images(db, image_tasks))
+        
+        if not members_to_add:
+            logger.info("No team members to save", extra={"team_id": team_id})
+    
+    async def _process_member_images(self, db: Session, image_tasks: list):
+        """Process member images asynchronously"""
+        for person_id, image_url, image2_url in image_tasks:
+            try:
+                await self.person_image_service.save_person_images(db, person_id, image_url, image2_url)
+                # Small delay between image downloads to be nice to the server
+                await asyncio.sleep(0.2)
+            except Exception as e:
+                logger.error("Error processing images for person", extra={
+                    "person_id": person_id,
+                    "error": str(e)
+                })
