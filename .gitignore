@@ -3,3 +3,10 @@ __pycache__/
 *.pyc
 .pytest_cache/
 venv/*
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Keep example file
+!.env.example

@@ -20,16 +20,11 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env.development
     environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_PORT=5432
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - MINIO_BUCKET=hockey-images
+      - POSTGRES_HOST=db # Database host, defined for docker networking
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT} # minio endpoint, defined for docker networking
     depends_on:
       - db
       - minio
@@ -41,7 +36,7 @@ services:
     restart: always
     container_name: hockey_db
     env_file:
-      - .env
+      - .env.development
     networks:
       - backend
     volumes:
@@ -63,8 +58,10 @@ services:
       - "9000:9000"  # API port
       - "9001:9001"  # Console port
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+    env_file:
+      - .env.development
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"

@@ -58,6 +58,7 @@ class TournamentService:
 
     def save_tournaments(self, db: Session, data: dict):
         for tournament_data in data.get("tournamentsInSeason", []):
+            tournament_id = tournament_data["tournamentId"]
             tournament = Tournament(
                 tournament_id=tournament_data["tournamentId"],
                 tournament_no=tournament_data["tournamentNo"],
@@ -89,9 +90,18 @@ class TournamentService:
                 sport_id=tournament_data["sportId"]
             )
             
+            # merge tournament
+            db.merge(tournament)
+
+           # DELETE existing tournament classes first to avoid unique constraint violation
+            db.query(TournamentClass).filter(
+                TournamentClass.tournament_id == tournament_id
+            ).delete()
+            
+            # ADD all tournament classes fresh
             for class_data in tournament_data.get("tournamentClasses", []):
                 tournament_class = TournamentClass(
-                    tournament_id=tournament.tournament_id,
+                    tournament_id=tournament_id,  # Use the variable directly
                     class_id=class_data["classId"],
                     class_name=class_data["className"],
                     from_age=class_data["fromAge"],
@@ -101,8 +111,7 @@ class TournamentService:
                     gender=class_data["gender"],
                     live_arena_storage=class_data["liveArenaStorage"]
                 )
-                db.merge(tournament_class)
-            db.merge(tournament)
+                db.add(tournament_class)  # Use add() instead of merge()
         
         db.commit()
         logger.info(f"Saved {len(data.get('tournamentsInSeason', []))} tournaments")

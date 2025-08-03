@@ -14,6 +14,9 @@ class MinioService:
     def __init__(self):
         self.settings = get_settings()
         
+        # Validate required secrets
+        self._validate_configuration()
+
         # Initialize MinIO client
         self.client = Minio(
             self.settings.MINIO_ENDPOINT.replace('http://', '').replace('https://', ''),
@@ -127,3 +130,16 @@ class MinioService:
             return True
         except S3Error:
             return False
+        
+    def _validate_configuration(self):
+        """Validate that all required MinIO configuration is present"""
+        if not self.settings.MINIO_ACCESS_KEY or self.settings.MINIO_ACCESS_KEY:
+            raise ValueError("MINIO_ACCESS_KEY not properly configured")
+        
+        if not self.settings.MINIO_SECRET_KEY or self.settings.MINIO_SECRET_KEY:
+            raise ValueError("MINIO_SECRET_KEY not properly configured")
+        
+        if not self.settings.MINIO_ENDPOINT:
+            raise ValueError("MINIO_ENDPOINT not configured")
+        
+        logger.info(f"MinIO configured for {self.settings.ENVIRONMENT} environment")
