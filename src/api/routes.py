@@ -1,39 +1,38 @@
-from flask import Flask, jsonify, request
-from src.utils.database import get_db
-from src.services.team_service import TeamService
-from src.models.tournament import Tournament
-from src.models.team import Team
+# src/api/routes.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# TODO: This is just an example of how to proceed with the API
-app = Flask(__name__)
-team_service = TeamService()
+app = FastAPI(title="Norwegian Hockey Backend")
 
-@app.route('/api/teams/<int:team_id>/tournaments', methods=['GET'])
-def get_team_tournaments(team_id):
-    db = next(get_db())
-    try:
-        # Use existing service logic
-        query = db.query(
-            Team.team_id, 
-            Team.team_name,
-            Tournament.tournament_name,
-            Tournament.season_name
-        ).join(
-            Tournament, Team.tournament_id == Tournament.tournament_id
-        ).filter(
-            Team.team_id == team_id
-        ).all()
-        
-        # Format response as JSON
-        result = [
-            {
-                'team_id': r[0],
-                'team_name': r[1], 
-                'tournament_name': r[2],
-                'season_name': r[3]
-            } 
-            for r in query
-        ]
-        return jsonify(result)
-    finally:
-        db.close()
+# Add CORS at the main app level
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure this properly for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Import routers
+from src.api.claude_routes import router as claude_router
+from src.api.hockey_routes import router as hockey_router  # Uncomment this
+
+# Include routers with prefixes
+app.include_router(claude_router, prefix="/ai", tags=["AI"])
+app.include_router(hockey_router, prefix="/hockey", tags=["Hockey"])  # Uncomment this
+
+@app.get("/")
+async def root():
+    return {
+        "message": "Norwegian Hockey Backend",
+        "endpoints": {
+            "ai": "/ai/api/query",
+            "hockey": "/hockey/teams, /hockey/players, /hockey/insights",
+            "swagger": "/docs"
+        }
+    }
+
+# Add this to make it runnable
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -41,7 +41,8 @@ This project is a Python backend application that interfaces with a PostgreSQL d
    docker-compose up --build
    ```
 
-2. Access the API at `http://localhost:<port>`.
+2. Access the API at `http://localhost:8000`.
+3. Acess swagger at `http://localhost:8000/docs`.
 
 ## Testing
 To run the tests, use:
@@ -65,7 +66,14 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ## TODO
 
-- setup minio for storage of images. It is working, but not robust.
+- Claude-powered backend [yupp]
+- set up Anthropic API key and Claude integration [ok](https://console.anthropic.com/settings/keys)
+- build the natural language query service
+- create a simple FastAPI wrapper around Claude
+- Deploy to k3s on vps
+- start looking at frontend ( streamlit, Gradio, Reflex, Panel? Django??)
+
+- setup minio for storage of images. It is working, but not robust. [ok]
 
 - next endpoints to get data from:
 - tournamentsInSeason [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/Tournament/Season/201036)
@@ -75,4 +83,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - TeamMembers [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TeamMembers/{{teamId}})
 - Organisation [ok](https://sf34-terminlister-prod-app.azurewebsites.net/org/Organisation?orgIds={{orgId}})
 
-- create db views and api routes
+- create db views and api routes [dont-do-it-this-way]
