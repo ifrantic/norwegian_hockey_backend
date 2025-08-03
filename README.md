@@ -1,5 +1,5 @@
 # Python Backend Project
-## thaugts
+## Thoughts
 Ok, so how should I start? I need a backend postgres database, service that gets data from many api endpoints and updates the data, and then begin to work with the joins and views etc, and then create an api that returns data from the backend database. I think. I want to use python for the backend. Also, in initial testphase, the postgresql database will be a docker container having a persistent storage on my laptop. When in production ( in the end ), the backend will be on a virtual linux server I rent, running in docker or k8s. It will be containerized.
 
 ## Overview
@@ -53,6 +53,10 @@ pytest tests/
 - python -m src.scripts.fetch_tournaments
 - python -m src.scripts.fetch_teams
 - python -m src.scripts.fetch_matches
+- python -m src.scripts.fetch_organisations
+- python -m src.scripts.fetch_standings
+- python -m src.scripts.fetch_team_members
+
 
 
 ## License
@@ -60,6 +64,9 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 
 ## TODO
+
+- setup minio for storage of images. It is working, but not robust.
+
 - next endpoints to get data from:
 - tournamentsInSeason [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/Tournament/Season/201036)
 - TournamentTeams [ok](https://sf34-terminlister-prod-app.azurewebsites.net/ta/TournamentTeams/?tournamentId={{tournamentId}})

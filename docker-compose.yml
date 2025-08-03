@@ -12,13 +12,31 @@ services:
 #       - DATABASE_URL=postgres://user:password@db:5432/mydatabase
 #     depends_on:
 #       - db
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.development
+    environment:
+      - POSTGRES_HOST=db # Database host, defined for docker networking
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT} # minio endpoint, defined for docker networking
+    depends_on:
+      - db
+      - minio
+    networks:
+      - backend
 
   db:
     image: postgres:latest
     restart: always
     container_name: hockey_db
     env_file:
-      - .env
+      - .env.development
     networks:
       - backend
     volumes:
@@ -31,9 +49,35 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
 
+# Add MinIO service
+  minio:
+    image: minio/minio:latest
+    container_name: hockey_minio
+    restart: always
+    ports:
+      - "9000:9000"  # API port
+      - "9001:9001"  # Console port
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+    env_file:
+      - .env.development
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - backend
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    #   interval: 30s
+    #   timeout: 20s
+    #   retries: 3
+
 volumes:
   hockey_data:
     name: hockey_data
+  minio_data:
+    name: minio_data
 
 networks:
   backend:
