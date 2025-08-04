@@ -9,3 +9,6 @@ httpx
 pydantic
 pydantic-settings
 minio==7.2.0
+anthropic
+fastapi
+uvicorn
