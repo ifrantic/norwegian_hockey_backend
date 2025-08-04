@@ -15,6 +15,7 @@ class HockeyAnalytics:
         """Get a fresh database connection"""
         return next(get_db())
     
+    # get available filters for frontend
     def get_available_filters(self) -> Dict[str, Any]:
         """Get all available filter options for the frontend"""
         db = self._get_fresh_db()
@@ -69,11 +70,11 @@ class HockeyAnalytics:
         finally:
             db.close()
     
-    # src/services/hockey_analytics.py
+    # get teams with smart filtering
     def get_teams(self, tournament_id: Optional[int] = None, 
-              club_id: Optional[int] = None,
-              search: Optional[str] = None,
-              limit: int = 50) -> Dict[str, Any]:
+                club_id: Optional[int] = None,
+                search: Optional[str] = None,
+                limit: int = 50) -> Dict[str, Any]:
         """Get teams with smart filtering"""
         db = self._get_fresh_db()
         try:
@@ -84,7 +85,10 @@ class HockeyAnalytics:
                     COALESCE(t.overridden_name, t.team_name) AS display_name,
                     tour.tournament_name,
                     tour.season_name,
-                    o.org_name AS club_name,
+                    o.org_name AS org_name,
+                    t.club_org_id AS org_id,
+                    o.org_logo_base64 as logo,
+                    tour.tournament_id AS tournament_id,
                     COUNT(tm.id) AS member_count,
                     COUNT(CASE WHEN tm.member_type = 'Player' THEN 1 END) AS player_count
                 FROM teams t
@@ -109,8 +113,8 @@ class HockeyAnalytics:
                 params["search"] = f"%{search}%"
             
             query += """
-                GROUP BY t.team_id, t.team_name, t.overridden_name, 
-                        tour.tournament_name, tour.season_name, o.org_name
+                GROUP BY t.team_id, t.team_name, t.overridden_name, o.org_logo_base64,
+                        tour.tournament_name, tour.season_name, o.org_name, t.club_org_id, tour.tournament_id
                 ORDER BY tour.tournament_name, t.team_name
                 LIMIT :limit
             """
@@ -136,6 +140,7 @@ class HockeyAnalytics:
         finally:
             db.close()
 
+    # get players with smart filters and images
     def get_players(self, team_id: Optional[int] = None,
                 position: Optional[str] = None,
                 tournament_id: Optional[int] = None,
@@ -146,7 +151,7 @@ class HockeyAnalytics:
         db = self._get_fresh_db()
         try:
             query = """
-                SELECT 
+                SELECT DISTINCT
                     tm.id,
                     tm.person_id,
                     tm.first_name,
@@ -160,27 +165,19 @@ class HockeyAnalytics:
                     tm.gender,
                     t.team_name,
                     COALESCE(t.overridden_name, t.team_name) AS team_display_name,
-                    tour.tournament_name,
                     o.org_name as club_name,
                     tcd.image_object_key,
                     tcd.image2_object_key,
-                    tcd.original_image_url,
-                    tcd.original_image2_url
+                    t.team_id as team_id,
+                    o.org_id as org_id
                 FROM team_members tm
                 LEFT JOIN teams t ON tm.team_id = t.team_id
-                LEFT JOIN tournaments tour ON t.tournament_id = tour.tournament_id
                 LEFT JOIN organisations o ON t.club_org_id = o.org_id
                 LEFT JOIN team_member_custom_data tcd ON tm.person_id = tcd.person_id
                 WHERE tm.member_type = 'Player'
             """
             
             params = {}
-            
-            # Only filter by tournament deletion if we have tournament data
-            if tournament_id:
-                query += " AND tour.is_deleted IS NOT TRUE"
-            else:
-                query += " AND (tour.is_deleted IS NOT TRUE OR tour.is_deleted IS NULL)"
             
             if team_id:
                 query += " AND tm.team_id = :team_id"
@@ -202,7 +199,7 @@ class HockeyAnalytics:
                 query += " AND (tm.first_name ILIKE :search OR tm.last_name ILIKE :search)"
                 params["search"] = f"%{search}%"
             
-            query += " ORDER BY COALESCE(tour.tournament_name, 'ZZZ'), COALESCE(t.team_name, 'ZZZ'), tm.number LIMIT :limit"
+            query += " ORDER BY tm.person_id LIMIT :limit"
             params["limit"] = limit
             
             result = db.execute(text(query), params)
@@ -227,94 +224,106 @@ class HockeyAnalytics:
         finally:
             db.close()
 
-    def get_insights_summary(self) -> Dict[str, Any]:
-        """Get interesting insights about the data"""
-        db = self._get_fresh_db()
-        try:
-            # Total counts - Fix: Use 'Player' not 'player'
-            totals = db.execute(text("""
-                SELECT 
-                    (SELECT COUNT(*) FROM teams t JOIN tournaments tour ON t.tournament_id = tour.tournament_id WHERE tour.is_deleted = FALSE) as teams,
-                    (SELECT COUNT(*) FROM team_members WHERE member_type = 'Player') as players,
-                    (SELECT COUNT(*) FROM tournaments WHERE is_deleted = FALSE) as tournaments,
-                    (SELECT COUNT(*) FROM organisations) as clubs
-            """)).fetchone()
-            
-            # Most common positions - Fix: Use 'Player' not 'player'
-            top_positions = db.execute(text("""
-                SELECT position, COUNT(*) as count
-                FROM team_members
-                WHERE position IS NOT NULL AND member_type = 'Player'
-                GROUP BY position
-                ORDER BY count DESC
-                LIMIT 5
-            """)).fetchall()
-            
-            # Biggest tournaments by team count
-            biggest_tournaments = db.execute(text("""
-                SELECT 
-                    tour.tournament_name, 
-                    tour.season_name,
-                    COUNT(t.team_id) as team_count
-                FROM tournaments tour
-                JOIN teams t ON tour.tournament_id = t.tournament_id
-                WHERE tour.is_deleted = FALSE
-                GROUP BY tour.tournament_id, tour.tournament_name, tour.season_name
-                ORDER BY team_count DESC
-                LIMIT 5
-            """)).fetchall()
-            
-            # Clubs with most teams
-            biggest_clubs = db.execute(text("""
-                SELECT 
-                    o.org_name,
-                    COUNT(DISTINCT t.team_id) as team_count,
-                    COUNT(DISTINCT t.tournament_id) as tournament_count
-                FROM organisations o
-                JOIN teams t ON o.org_id = t.club_org_id
-                JOIN tournaments tour ON t.tournament_id = tour.tournament_id
-                WHERE tour.is_deleted = FALSE
-                GROUP BY o.org_id, o.org_name
-                ORDER BY team_count DESC
-                LIMIT 5
-            """)).fetchall()
-            
-            return {
-                "success": True,
-                "totals": dict(totals._mapping) if totals else {},
-                "top_positions": [dict(row._mapping) for row in top_positions],
-                "biggest_tournaments": [dict(row._mapping) for row in biggest_tournaments],
-                "biggest_clubs": [dict(row._mapping) for row in biggest_clubs]
-            }
-            
-        except Exception as e:
-            logger.error(f"Error getting insights: {e}")
-            return {"success": False, "error": str(e)}
-        finally:
-            db.close()
 
+    # get standings for a specific tournament
     def get_tournament_standings(self, tournament_id: int) -> Dict[str, Any]:
         """Get standings for a specific tournament"""
         db = self._get_fresh_db()
         try:
             query = """
-                SELECT 
-                    s.position,
+                SELECT distinct
+                    s.id,
+                    s.tournament_id,
+                    s.team_id,
                     s.team_name,
+                    s.overridden_name,
                     COALESCE(s.overridden_name, s.team_name) AS display_name,
-                    s.matches_played as played,
-                    s.victories as wins,
-                    s.draws,
-                    s.losses,
+                    s.position,
+                    s.entry_id,
+                    
+                    -- Match stats
+                    s.matches_played,
+                    s.matches_home,
+                    s.matches_away,
+                    
+                    -- Points
                     s.points,
-                    s.goals_scored as goals_for,
-                    s.goals_conceded as goals_against,
-                    s.goals_diff as goal_difference,
-                    CASE 
-                        WHEN s.matches_played > 0 THEN ROUND((s.points::decimal / (s.matches_played * 3)) * 100, 1)
-                        ELSE 0 
-                    END AS points_percentage
+                    s.points_home,
+                    s.points_away,
+                    s.points_start,
+                    s.total_points,
+                    
+                    -- Victories
+                    s.victories,
+                    s.victories_home,
+                    s.victories_away,
+                    s.victories_fulltime_total,
+                    s.victories_fulltime_home,
+                    s.victories_fulltime_away,
+                    s.victories_overtime_total,
+                    s.victories_overtime_home,
+                    s.victories_overtime_away,
+                    s.victories_penalties_total,
+                    s.victories_penalties_home,
+                    s.victories_penalties_away,
+                    
+                    -- Draws
+                    s.draws,
+                    s.draws_home,
+                    s.draws_away,
+                    
+                    -- Losses
+                    s.losses,
+                    s.losses_home,
+                    s.losses_away,
+                    s.losses_fulltime_total,
+                    s.losses_fulltime_home,
+                    s.losses_fulltime_away,
+                    s.losses_overtime_total,
+                    s.losses_overtime_home,
+                    s.losses_overtime_away,
+                    s.losses_penalties_total,
+                    s.losses_penalties_home,
+                    s.losses_penalties_away,
+                    
+                    -- Goals
+                    s.goals_scored,
+                    s.goals_scored_home,
+                    s.goals_scored_away,
+                    s.goals_conceded,
+                    s.goals_conceded_home,
+                    s.goals_conceded_away,
+                    s.goals_diff,
+                    s.goals_ratio,
+                    
+                    -- Penalty minutes
+                    s.penalty_minutes,
+                    
+                    -- Records
+                    s.home_record,
+                    s.away_record,
+                    
+                    -- Formatted strings
+                    s.goals_home_formatted,
+                    s.goals_away_formatted,
+                    s.total_goals_formatted,
+                    
+                    -- Additional fields
+                    s.team_penalty,
+                    s.team_penalty_negative,
+                    s.team_penalty_positive,
+                    s.dispensation,
+                    s.team_entry_status,
+                    
+                    -- Metadata
+                    s.created_at,
+                    s.updated_at,
+
+                    -- logo
+                    o.org_logo_base64
                 FROM standings s
+                JOIN teams t ON t.team_id = s.team_id
+                JOIN organisations o ON t.club_org_id = o.org_id
                 WHERE s.tournament_id = :tournament_id
                 ORDER BY s.position ASC
             """
@@ -342,4 +351,71 @@ class HockeyAnalytics:
         finally:
             db.close()
 
-    
+
+    # get interesting insights about the data, like small stats and summaries
+    def get_insights_summary(self) -> Dict[str, Any]:
+        """Get interesting insights about the data"""
+        db = self._get_fresh_db()
+        try:
+            # Total counts 
+            totals = db.execute(text("""
+                SELECT 
+                    (SELECT COUNT(*) FROM teams t JOIN tournaments tour ON t.tournament_id = tour.tournament_id WHERE tour.is_deleted = FALSE) as teams,
+                    (SELECT COUNT(*) FROM team_members WHERE member_type = 'Player') as players,
+                    (SELECT COUNT(*) FROM tournaments WHERE is_deleted = FALSE) as tournaments,
+                    (SELECT COUNT(*) FROM organisations) as clubs
+            """)).fetchone()
+            
+            # Most common positions 
+            top_positions = db.execute(text("""
+                SELECT position, COUNT(*) as count
+                FROM team_members
+                WHERE position IS NOT NULL AND member_type = 'Player'
+                GROUP BY position
+                ORDER BY count DESC
+                LIMIT 6
+            """)).fetchall()
+            
+            # Biggest tournaments by team count
+            biggest_tournaments = db.execute(text("""
+                SELECT 
+                    tour.tournament_name, 
+                    tour.season_name,
+                    COUNT(t.team_id) as team_count
+                FROM tournaments tour
+                JOIN teams t ON tour.tournament_id = t.tournament_id
+                WHERE tour.is_deleted = FALSE
+                GROUP BY tour.tournament_id, tour.tournament_name, tour.season_name
+                ORDER BY team_count DESC
+                LIMIT 5
+            """)).fetchall()
+            
+            # Clubs with most teams
+            biggest_clubs = db.execute(text("""
+                SELECT 
+                    o.org_name,
+                    COUNT(DISTINCT t.team_id) as team_count,
+                    COUNT(DISTINCT t.tournament_id) as tournament_count,
+					o.org_logo_base64
+                FROM organisations o
+                JOIN teams t ON o.org_id = t.club_org_id
+                JOIN tournaments tour ON t.tournament_id = tour.tournament_id
+                WHERE tour.is_deleted = FALSE
+                GROUP BY o.org_id, o.org_name
+                ORDER BY team_count DESC
+                LIMIT 5
+            """)).fetchall()
+            
+            return {
+                "success": True,
+                "totals": dict(totals._mapping) if totals else {},
+                "top_positions": [dict(row._mapping) for row in top_positions],
+                "biggest_tournaments": [dict(row._mapping) for row in biggest_tournaments],
+                "biggest_clubs": [dict(row._mapping) for row in biggest_clubs]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting insights: {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            db.close()
