@@ -362,3 +362,58 @@ CREATE TABLE IF NOT EXISTS team_member_custom_data (
 -- Add index for team_member_custom_data queries
 CREATE INDEX idx_team_member_custom_data_person_id ON team_member_custom_data(person_id);
 CREATE INDEX idx_team_member_custom_data_last_fetched ON team_member_custom_data(last_fetched_at);
+
+-- Create player_statistics table
+CREATE TABLE IF NOT EXISTS player_statistics (
+    id SERIAL PRIMARY KEY,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(tournament_id),
+    person_id INTEGER NOT NULL,
+    org_id INTEGER NOT NULL,
+    
+    -- Player info
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    team_name VARCHAR(255) NOT NULL,
+    team_short_name VARCHAR(50),
+    position VARCHAR(50),
+    
+    -- Statistics
+    rank INTEGER,
+    pts INTEGER,
+    games_played INTEGER NOT NULL DEFAULT 0,
+    goals_scored INTEGER NOT NULL DEFAULT 0,
+    assists INTEGER NOT NULL DEFAULT 0,
+    points INTEGER NOT NULL DEFAULT 0,
+    scoring_points INTEGER DEFAULT 0, -- custom field, same as pts but for clarity
+    plus_minus INTEGER DEFAULT 0, -- custom field, same as points but for clarity
+    pim INTEGER NOT NULL DEFAULT 0,
+    
+    -- Power play stats
+    power_play_goals INTEGER NOT NULL DEFAULT 0,
+    power_play_goal_assists INTEGER NOT NULL DEFAULT 0,
+    
+    -- Short handed stats
+    short_handed_goals INTEGER NOT NULL DEFAULT 0,
+    short_handed_goal_assists INTEGER NOT NULL DEFAULT 0,
+    
+    -- Other stats
+    gwg INTEGER NOT NULL DEFAULT 0,
+    shots INTEGER NOT NULL DEFAULT 0,
+    shots_pct FLOAT,
+    face_offs INTEGER NOT NULL DEFAULT 0,
+    faceoffs_win_pct FLOAT,
+    
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Ensure one record per player per tournament
+    UNIQUE(tournament_id, person_id)
+);
+
+-- Add indexes for player statistics queries
+CREATE INDEX idx_player_statistics_tournament_id ON player_statistics(tournament_id);
+CREATE INDEX idx_player_statistics_person_id ON player_statistics(person_id);
+CREATE INDEX idx_player_statistics_points ON player_statistics(points DESC);
+CREATE INDEX idx_player_statistics_goals ON player_statistics(goals_scored DESC);
+CREATE INDEX idx_player_statistics_rank ON player_statistics(rank);

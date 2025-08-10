@@ -9,6 +9,7 @@ from src.models.match import Match
 from src.models.standing import Standing
 from src.models.organisation import Organisation
 from src.models.team_member import TeamMember
+from src.models.player_statistic import PlayerStatistic
 
 
 settings = get_settings()
