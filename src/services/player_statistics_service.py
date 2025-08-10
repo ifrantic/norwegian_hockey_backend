@@ -103,7 +103,6 @@ class PlayerStatisticsService:
                         games_played=player_data.get("gamesPlayed", 0),
                         goals_scored=player_data.get("goalsScored", 0),
                         assists=player_data.get("assists", 0),
-                        points=player_data.get("points", 0),
                         pim=player_data.get("pim", 0),
                         power_play_goals=player_data.get("powerPlayGoals", 0),
                         power_play_goal_assists=player_data.get("powerPlayGoalAssists", 0),
@@ -113,7 +112,7 @@ class PlayerStatisticsService:
                         shots=player_data.get("shots", 0),
                         shots_pct=player_data.get("shotsPct"),
                         face_offs=player_data.get("faceOffs", 0),
-                        faceoffs_win_pct=player_data.get("faceoffsWinPct")
+                        faceoffs_win_pct=player_data.get("faceoffsWinPct"),
                     )
                     db.add(player_stat)
                     saved_count += 1
