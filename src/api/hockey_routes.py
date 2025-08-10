@@ -112,3 +112,80 @@ async def get_insights():
         
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
+
+## player statistics
+@router.get("/tournaments/{tournament_id}/players")
+async def get_tournament_player_statistics(
+    tournament_id: int,
+    stat_type: str = Query("points", description="Type of stats to sort by: points, goals, assists, pim, shots, saves, faceoffs"),
+    limit: int = Query(20, ge=1, le=100, description="Max results to return")
+):
+    """
+    Get player statistics for a specific tournament.
+    
+    **stat_type options:**
+    - points: Total points (goals + assists)
+    - goals: Goals scored
+    - assists: Assists
+    - pim: Penalty minutes
+    - shots: Shots taken
+    - saves: Shooting percentage (best)
+    - faceoffs: Face-off win percentage (best)
+    """
+    try:
+        analytics = HockeyAnalytics()
+        return analytics.get_tournament_player_stats(tournament_id, stat_type, limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/players/top-scorers")
+async def get_top_scorers_overall(
+    stat_type: str = Query("points", description="Type of stats to sort by: points, goals, assists, pim, shots, saves, faceoffs"),
+    position: Optional[str] = Query(None, description="Filter by player position"),
+    limit: int = Query(50, ge=1, le=200, description="Max results to return")
+):
+    """
+    Get top scorers across all tournaments.
+    
+    **stat_type options:**
+    - points: Total points (goals + assists)
+    - goals: Goals scored
+    - assists: Assists
+    - pim: Penalty minutes
+    - shots: Shots taken
+    - saves: Shooting percentage (best)
+    - faceoffs: Face-off win percentage (best)
+    
+    **Common positions:** F, D, LW, RW, C, G
+    """
+    try:
+        analytics = HockeyAnalytics()
+        return analytics.get_top_scorers_overall(stat_type, position, limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/players/{person_id}/career")
+async def get_player_career_statistics(person_id: int):
+    """
+    Get career statistics for a specific player across all tournaments.
+    Includes tournament-by-tournament breakdown and career totals.
+    """
+    try:
+        analytics = HockeyAnalytics()
+        return analytics.get_player_career_stats(person_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/players/summary")
+async def get_player_statistics_summary(
+    tournament_id: Optional[int] = Query(None, description="Filter by specific tournament")
+):
+    """
+    Get summary statistics about player performance.
+    Includes top performers, position breakdowns, and overall stats.
+    """
+    try:
+        analytics = HockeyAnalytics()
+        return analytics.get_player_stats_summary(tournament_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
